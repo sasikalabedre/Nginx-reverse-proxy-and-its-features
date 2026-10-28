@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notes</title>
+</head>
+<body>
+  <h1>My Notes</h1>
+
+  <input id="noteText" placeholder="Write a note">
+  <button onclick="addNote()">Add</button>
+
+  <ul id="notesList"></ul>
+
+  <script>
+    async function loadNotes() {
+      const response = await fetch("/api/notes");
+      const notes = await response.json();
+      const list = document.getElementById("notesList");
+      list.innerHTML = "";
+      notes.forEach(function (note) {
+        const item = document.createElement("li");
+        item.textContent = note.text;
+        list.appendChild(item);
+      });
+    }
+
+    async function addNote() {
+      const input = document.getElementById("noteText");
+      await fetch("/api/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: input.value })
+      });
+      input.value = "";
+      loadNotes();
+    }
+
+    loadNotes();
+  </script>
+</body>
+</html>

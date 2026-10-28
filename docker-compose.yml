@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: notesdb
+      POSTGRES_USER: notesuser
+      POSTGRES_PASSWORD: notespass
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notesuser -d notesdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    environment:
+      DB_HOST: db
+      DB_NAME: notesdb
+      DB_USER: notesuser
+      DB_PASSWORD: notespass
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./html:/usr/share/nginx/html:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+
+volumes:
+  db_data:
